@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="layout_back" type="id" />
+    <item name="editTextTitle" type="id" />
+    <item name="editTextContent" type="id" />
+    <item name="layout_forward" type="id" />
+</resources>
