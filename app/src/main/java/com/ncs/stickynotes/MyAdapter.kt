@@ -37,4 +37,5 @@ class MyAdapter(private val imageData: List<Int>) : RecyclerView.Adapter<MyAdapt
     fun setOnItemClickListener(listener: OnItemClickListener) {
         itemClickListener = listener
     }
+
 }

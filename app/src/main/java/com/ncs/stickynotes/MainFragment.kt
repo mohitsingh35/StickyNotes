@@ -21,16 +21,34 @@ class MainFragment : Fragment() {
     lateinit var binding: FragmentMainBinding
     lateinit var recyclerView: RecyclerView
     lateinit var buttonAddNote: Button
+    lateinit var layoutManager: LinearLayoutManager
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         binding=FragmentMainBinding.inflate(inflater,container,false)
         recyclerView = binding.recycler
         recyclerView.layoutManager = GridLayoutManager(requireContext(),2)
         val adapter = NotesAdapter(emptyList())
+        adapter.setOnItemClickListener(object : NotesAdapter.OnItemClickListener {
+            override fun onItemClick(notes: Notes) {
+                val fragment = AddNoteFragment()
+                val bundle = Bundle()
+                bundle.putParcelable("selectedNote", notes)
+                fragment.arguments = bundle
+                val fragmentManager = requireActivity().supportFragmentManager
+                val fragmentTransaction = fragmentManager.beginTransaction()
+                fragmentTransaction.replace(R.id.FragmentContainer, fragment)
+                fragmentTransaction.addToBackStack(null)
+                fragmentTransaction.commit()
+            }
+        })
         recyclerView.adapter = adapter
         noteViewModel = ViewModelProvider(this).get(NoteViewModel::class.java)
         noteViewModel.getAllNotes().observe(viewLifecycleOwner, { notes ->
             adapter.notes = notes
             adapter.notifyDataSetChanged()
+            if(notes.isEmpty()){
+                recyclerView.visibility=View.INVISIBLE
+                binding.emptyDatabase.visibility=View.VISIBLE
+            }
         })
 
         return binding.root
@@ -50,4 +68,5 @@ class MainFragment : Fragment() {
         fragmentTransaction.replace(R.id.FragmentContainer, AddNoteFragment())
         fragmentTransaction.commit()
     }
+
 }
