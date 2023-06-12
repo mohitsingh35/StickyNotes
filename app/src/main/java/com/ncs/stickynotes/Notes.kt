@@ -12,14 +12,16 @@ data class Notes(
     var content: String,
     var backgroundDrawable: ByteArray,
     var colorvalue: Int = 0,
-    var size:Float=0.0F
+    var size:Float=0.0F,
+    var style:Int=0,
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readInt(),
         parcel.readString()!!,
         parcel.createByteArray()!!,
         parcel.readInt(),
-        parcel.readFloat()
+        parcel.readFloat(),
+        parcel.readInt()
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
@@ -28,6 +30,7 @@ data class Notes(
         parcel.writeByteArray(backgroundDrawable)
         parcel.writeInt(colorvalue)
         parcel.writeFloat(size)
+        parcel.writeInt(style)
 
     }
 

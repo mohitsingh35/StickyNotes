@@ -20,5 +20,7 @@ interface NotesDAO {
     suspend fun delete(note: Notes)
     @Update(onConflict = OnConflictStrategy.REPLACE)
     suspend fun update(note: Notes)
+    @Query("SELECT * FROM notes WHERE id = :id")
+    fun getNoteById(id: Int): LiveData<Notes>
 
 }

@@ -1,12 +1,11 @@
 package com.ncs.stickynotes
 
-import android.app.Dialog
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Typeface
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.provider.Telephony.Mms.Part.TEXT
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -14,25 +13,20 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.content.ContextCompat
-import androidx.core.graphics.toColor
-import androidx.core.view.isGone
-import androidx.core.view.isInvisible
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.ncs.stickynotes.databinding.FragmentAddNoteBinding
 import vadiole.colorpicker.ColorModel
 import vadiole.colorpicker.ColorPickerDialog
-import vadiole.colorpicker.ColorPickerView.Companion.defaultColor
+import vadiole.colorpicker.ColorPickerView
+
 import java.io.ByteArrayOutputStream
-import kotlin.properties.Delegates
 
 
 class AddNoteFragment : Fragment() ,MyAdapter.OnItemClickListener {
@@ -48,8 +42,9 @@ class AddNoteFragment : Fragment() ,MyAdapter.OnItemClickListener {
     lateinit var colorButton: Button
     lateinit var fontsize:Button
     var colorvalue:Int = 0
-    var size:Float= 0.0F
-
+    var size:Float= 22.0F
+    lateinit var fontstyles:Button
+    var textstyle:Int=0
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -60,12 +55,17 @@ class AddNoteFragment : Fragment() ,MyAdapter.OnItemClickListener {
         noteViewModel = ViewModelProvider(this).get(NoteViewModel::class.java)
         colorButton=binding.color
         colorButton.setOnClickListener {
-          textcolor()
+            textcolor()
         }
         fontsize=binding.fontsize
         fontsize.setOnClickListener {
             showFontSizeBottomSheet()
         }
+        fontstyles=binding.fontstyles
+        fontstyles.setOnClickListener {
+            showFontStyleBottomSheet()
+        }
+
         arguments?.let {
             receivedNote = it.getParcelable(ARG_NOTE)
         }
@@ -79,6 +79,11 @@ class AddNoteFragment : Fragment() ,MyAdapter.OnItemClickListener {
             binding.editTextContent.setText(receivedNote?.content)
             binding.editTextContent.doAfterTextChanged {
                 receivedNote?.content = it.toString()
+            }
+            val typeface1=receivedNote?.style
+            if(typeface1!=0){
+                val typeface = typeface1?.let { ResourcesCompat.getFont(requireContext(), it) }
+                binding.editTextContent.typeface=typeface
             }
             receivedNote?.colorvalue?.let { binding.editTextContent.setTextColor(it) }
             binding.Save.visibility=View.INVISIBLE
@@ -108,7 +113,6 @@ class AddNoteFragment : Fragment() ,MyAdapter.OnItemClickListener {
             val fragmentManager = requireActivity().supportFragmentManager
             val fragmentTransaction = fragmentManager.beginTransaction()
             fragmentTransaction.replace(R.id.FragmentContainer, MainFragment())
-            fragmentTransaction.addToBackStack(null)
             fragmentTransaction.commit()
         }
         constraintLayout = binding.layout
@@ -147,23 +151,27 @@ class AddNoteFragment : Fragment() ,MyAdapter.OnItemClickListener {
         val backgroundByteArray = byteArrayOutputStream.toByteArray()
         val content = editTextContent.text.toString()
         val textcolour=editTextContent.currentTextColor
-
+        val tsize=editTextContent.textSize
+        val style=convertTypefaceToInt(editTextContent.typeface)
         if (receivedNote != null) {
             receivedNote?.content = content
             receivedNote?.backgroundDrawable = backgroundByteArray
             receivedNote?.colorvalue=textcolour
-            receivedNote?.size=size
+            receivedNote?.size=tsize
+            receivedNote?.style=style
             if (colorvalue == 0) {
                 receivedNote?.colorvalue = editTextContent.currentTextColor
             }
-            noteViewModel.update(receivedNote!!)
+            if(textstyle==0){
+                receivedNote?.style=convertTypefaceToInt(editTextContent.typeface)
+            }
 
+            noteViewModel.update(receivedNote!!)
             Toast.makeText(requireContext(), "Note Updated", Toast.LENGTH_SHORT).show()
 
         } else {
-            // Insert a new note
             val note = Notes(0, content = content, backgroundDrawable = backgroundByteArray, colorvalue = editTextContent.currentTextColor,
-                size=editTextContent.textSize)
+                size=editTextContent.textSize,style=convertTypefaceToInt(editTextContent.typeface))
             noteViewModel.insert(note)
             Toast.makeText(requireContext(), "Note Saved", Toast.LENGTH_SHORT).show()
         }
@@ -238,6 +246,59 @@ class AddNoteFragment : Fragment() ,MyAdapter.OnItemClickListener {
         bottomSheetDialog.setContentView(recyclerView)
         bottomSheetDialog.show()
     }
+    fun showFontStyleBottomSheet() {
+        val fontStyleList = listOf(
+            R.font.outfitextrabold,
+            R.font.outfitlight,
+            R.font.kablammo,
+            R.font.tiltprism,
+            R.font.dancing,
+            R.font.pacifico,
+            R.font.caveat,
+            R.font.shadowsintolight,
+            R.font.ecular,
+            R.font.indie,
+            R.font.pressstart,
+            R.font.monoton
 
+        )
+
+        val bottomSheetDialog = BottomSheetDialog(requireContext())
+        val recyclerView = RecyclerView(requireContext())
+        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+
+        val adapter = FontStyleAdapter(fontStyleList) { fontStyle ->
+            val typeface = ResourcesCompat.getFont(requireContext(), fontStyle)
+            textstyle=fontStyle
+            binding.editTextContent.typeface = typeface
+            bottomSheetDialog.dismiss()
+        }
+        recyclerView.adapter = adapter
+
+        bottomSheetDialog.setContentView(recyclerView)
+        bottomSheetDialog.show()
     }
-
+    fun convertTypefaceToInt(typeface: Typeface): Int {
+        return when (typeface) {
+            ResourcesCompat.getFont(requireContext(), R.font.outfitextrabold) -> R.font.outfitextrabold
+            ResourcesCompat.getFont(requireContext(), R.font.outfitlight) -> R.font.outfitlight
+            ResourcesCompat.getFont(requireContext(), R.font.caveat) -> R.font.caveat
+            ResourcesCompat.getFont(requireContext(), R.font.dancing) -> R.font.dancing
+            ResourcesCompat.getFont(requireContext(), R.font.ecular) -> R.font.ecular
+            ResourcesCompat.getFont(requireContext(), R.font.indie) -> R.font.indie
+            ResourcesCompat.getFont(requireContext(), R.font.kablammo) -> R.font.kablammo
+            ResourcesCompat.getFont(requireContext(), R.font.monoton) -> R.font.monoton
+            ResourcesCompat.getFont(requireContext(), R.font.pacifico) -> R.font.pacifico
+            ResourcesCompat.getFont(requireContext(), R.font.pressstart) -> R.font.pressstart
+            ResourcesCompat.getFont(requireContext(), R.font.shadowsintolight) -> R.font.shadowsintolight
+            ResourcesCompat.getFont(requireContext(), R.font.tiltprism) -> R.font.tiltprism
+            else -> 0
+        }
+    }
+    fun onBackPressed() {
+        val fragmentManager = requireActivity().supportFragmentManager
+        val fragmentTransaction = fragmentManager.beginTransaction()
+        fragmentTransaction.replace(R.id.FragmentContainer, MainFragment())
+        fragmentTransaction.commit()
+    }
+}

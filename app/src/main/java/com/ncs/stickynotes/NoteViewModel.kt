@@ -31,4 +31,7 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
     fun update(notes: Notes)=viewModelScope.launch {
         noteDao.update(notes)
     }
+    fun getNoteById(id: Int): LiveData<Notes> {
+        return noteDao.getNoteById(id)
+    }
 }

@@ -9,7 +9,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.content.ContentProviderCompat.requireContext
+import androidx.core.content.res.ResourcesCompat
 import androidx.recyclerview.widget.RecyclerView
+
 
 class NotesAdapter(var notes: List<Notes>) : RecyclerView.Adapter<NotesAdapter.NoteViewHolder>() {
     private var itemClickListener: NotesAdapter.OnItemClickListener? = null
@@ -33,13 +36,13 @@ class NotesAdapter(var notes: List<Notes>) : RecyclerView.Adapter<NotesAdapter.N
             val drawable: Drawable? = bitmap?.let { BitmapDrawable(it) }
             linearLayout.background = drawable
             textViewContent.text = notes.content
+            textViewContent.setTextColor(notes.colorvalue)
 
-            if (notes.colorvalue != 0) {
-                textViewContent.setTextColor(notes.colorvalue)
-            } else {
-                // Set a default text color if the note does not have a color value
-                textViewContent.setTextColor(textViewContent.context.getColor(R.color.main_light))
-                notes.colorvalue=0
+            if (notes.style==0){
+                textViewContent.typeface=ResourcesCompat.getFont(itemView.context, R.font.outfitmedium)
+            }else{
+                val typeface = ResourcesCompat.getFont(itemView.context, notes.style)
+                textViewContent.typeface=typeface
             }
         }
 

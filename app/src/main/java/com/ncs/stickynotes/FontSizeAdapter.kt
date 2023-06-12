@@ -20,6 +20,7 @@ class FontSizeAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val fontSize = fontSizeList[position]
         holder.bind(fontSize)
+
     }
 
     override fun getItemCount(): Int {
@@ -43,4 +44,5 @@ class FontSizeAdapter(
             fontSizeTextView.text = fontSize.toString()
         }
     }
+
 }
